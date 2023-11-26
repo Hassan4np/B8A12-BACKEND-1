@@ -143,9 +143,21 @@ async function run() {
 
         //Cards section------------>
 
+        app.get('/cards', async(req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            const result = await CardsCollation.find(query).toArray();
+            res.send(result)
+        });
         app.post('/cards', async(req, res) => {
             const data = req.body;
             const result = await CardsCollation.insertOne(data);
+            res.send(result)
+        });
+        app.delete('/cards/:id', async(req, res) => {
+            const id = req.params.id;
+            const quary = { _id: new ObjectId(id) }
+            const result = await CardsCollation.deleteOne(quary);
             res.send(result)
         });
 
@@ -156,6 +168,16 @@ async function run() {
             const result = await ReviewCollation.insertOne(data);
             res.send(result)
         });
+        // app.get('/cards', async(req, res) => {
+        //     const email = req.query.email;
+        //     console.log(email)
+        //     const query = { email: email }
+        //     const result = await BookingCollation.find(query).toArray();
+        //     res.send(result)
+        // });
+
+
+
         app.post("/bistoboss", async(req, res) => {
             const data = req.body;
             console.log(data)
@@ -192,7 +214,7 @@ async function run() {
         app.get('/cards', async(req, res) => {
             const email = req.query.email;
             const query = { email: email }
-            const result = await BookingCollation.find(query).toArray();
+            const result = await CardsCollation.find(query).toArray();
             res.send(result)
         })
 
