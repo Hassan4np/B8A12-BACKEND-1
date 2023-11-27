@@ -123,21 +123,37 @@ async function run() {
         });
         app.patch("/advertisement/:id", async(req, res) => {
             const id = req.params.id;
-            const body = req.body;
-            console.log(id, body)
-                // const filter = { _id: new ObjectId(id) }
+            const data = req.body;
+            console.log(id, data)
+            const filter = { _id: new ObjectId(id) }
 
-            // const updatedock = {
-            //     $set: {
-            //         name: data.name,
-            //         category: data.category,
-            //         price: data.price,
-            //         recipe: data.recipe,
-            //         image: data.image,
-            //     }
-            // };
-            // const result = await ServicesCollation.updateOne(filter, updatedock);
-            // return res.send(result)
+            const updateitem = {
+                $set: {
+                    title: data.title,
+                    location_name: data.location_name,
+                    dec: data.dec,
+                    agent_name: data.agent_name,
+                    agent_email: data.agent_email,
+                    agent_img: data.agent_img,
+                    status: data.status,
+                    price: data.price,
+                }
+            };
+            const result = await AdvertisementCollation.updateOne(filter, updateitem);
+            return res.send(result)
+        });
+        app.patch("/advertisement/status/:id", async(req, res) => {
+            const id = req.params.id;
+            const data = req.body;
+            console.log(id, data);
+            const filter = { _id: new ObjectId(id) };
+            const updateitem = {
+                $set: {
+                    status: data.status,
+                }
+            };
+            const result = await AdvertisementCollation.updateOne(filter, updateitem);
+            return res.send(result)
         });
 
         app.delete('/advertisement/:id', async(req, res) => {
@@ -151,7 +167,19 @@ async function run() {
             const result = await UsersCollation.find().toArray();
             res.send(result)
         });
-
+        app.patch("/users/:id", async(req, res) => {
+            const id = req.params.id;
+            const data = req.body;
+            console.log(id, data);
+            const filter = { _id: new ObjectId(id) };
+            const updateitem = {
+                $set: {
+                    roll: data.roll,
+                }
+            };
+            const result = await UsersCollation.updateOne(filter, updateitem);
+            return res.send(result)
+        });
         app.post('/users', async(req, res) => {
             const data = req.body;
             const query = { email: data.email }
@@ -160,6 +188,12 @@ async function run() {
                 return res.send({ message: 'user is all ready exists', insertId: null }, )
             }
             const result = await UsersCollation.insertOne(data);
+            res.send(result)
+        });
+        app.delete('/users/:id', async(req, res) => {
+            const id = req.params.id;
+            const quary = { _id: new ObjectId(id) }
+            const result = await UsersCollation.deleteOne(quary);
             res.send(result)
         });
 
@@ -253,11 +287,17 @@ async function run() {
             });
         });
         // payment user cards info detais post sectin-- -- -- -- -- -- -- >
+        // app.get("/payments/:email", async(req, res) => {
+        //     const query = { email: req.params.email }
+        //     if (req.params.email !== req.decoded.email) {
+        //         return res.status(403).send({ message: "fordidene access" })
+        //     }
+        //     const result = await PaymentCollation.find(query).toArray()
+        //     res.send(result)
+        // });
         app.get("/payments/:email", async(req, res) => {
             const query = { email: req.params.email }
-            if (req.params.email !== req.decoded.email) {
-                return res.status(403).send({ message: "fordidene access" })
-            }
+
             const result = await PaymentCollation.find(query).toArray()
             res.send(result)
         });
@@ -273,6 +313,7 @@ async function run() {
             const deleteresult = await BoughtsCollation.deleteMany(query);
             res.send({ paymentResult, deleteresult })
         });
+
         app.get('/cards', async(req, res) => {
             const email = req.query.email;
             console.log(email)
