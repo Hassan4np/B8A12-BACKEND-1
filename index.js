@@ -40,6 +40,8 @@ async function run() {
         const UsersCollation = database.collection('users');
         const CardsCollation = database.collection('cards');
         const ReviewCollation = database.collection('review');
+        const BoughtsCollation = database.collection('boughts');
+        const PaymentCollation = database.collection('payment');
 
         //verifytoken------------>
         const verifyToken = (req, res, next) => {
@@ -105,7 +107,45 @@ async function run() {
             const result = await AdvertisementCollation.findOne(quary);
             res.send(result)
         });
+        app.get('/advertisement/agent/:email', async(req, res) => {
+            const email = req.params.email;
+            console.log(email)
+            const query = {
+                agent_email: email
+            };
+            const result = await AdvertisementCollation.find(query).toArray();
+            res.send(result)
+        });
+        app.post('/advertisement', async(req, res) => {
+            const data = req.body;
+            const result = await AdvertisementCollation.insertOne(data);
+            res.send(result)
+        });
+        app.patch("/advertisement/:id", async(req, res) => {
+            const id = req.params.id;
+            const body = req.body;
+            console.log(id, body)
+                // const filter = { _id: new ObjectId(id) }
 
+            // const updatedock = {
+            //     $set: {
+            //         name: data.name,
+            //         category: data.category,
+            //         price: data.price,
+            //         recipe: data.recipe,
+            //         image: data.image,
+            //     }
+            // };
+            // const result = await ServicesCollation.updateOne(filter, updatedock);
+            // return res.send(result)
+        });
+
+        app.delete('/advertisement/:id', async(req, res) => {
+            const id = req.params.id;
+            const quary = { _id: new ObjectId(id) }
+            const result = await AdvertisementCollation.deleteOne(quary);
+            res.send(result)
+        });
         //user section----------------->
         app.get('/users', async(req, res) => {
             const result = await UsersCollation.find().toArray();
@@ -154,6 +194,12 @@ async function run() {
             const result = await CardsCollation.insertOne(data);
             res.send(result)
         });
+        app.get('/cards/:id', async(req, res) => {
+            const id = req.params.id;
+            const quary = { _id: new ObjectId(id) };
+            const result = await CardsCollation.findOne(quary);
+            res.send(result)
+        });
         app.delete('/cards/:id', async(req, res) => {
             const id = req.params.id;
             const quary = { _id: new ObjectId(id) }
@@ -162,19 +208,78 @@ async function run() {
         });
 
         //review section------------>
+
+        app.get('/review', async(req, res) => {
+            const result = await ReviewCollation.find().toArray();
+            res.send(result)
+        });
         app.post('/review', async(req, res) => {
             const data = req.body;
 
             const result = await ReviewCollation.insertOne(data);
             res.send(result)
         });
-        // app.get('/cards', async(req, res) => {
-        //     const email = req.query.email;
-        //     console.log(email)
-        //     const query = { email: email }
-        //     const result = await BookingCollation.find(query).toArray();
-        //     res.send(result)
-        // });
+        app.delete('/review/:id', async(req, res) => {
+                const id = req.params.id;
+                console.log(id)
+                const quary = { _id: new ObjectId(id) }
+                const result = await ReviewCollation.deleteOne(quary);
+                res.send(result)
+            })
+            //brought secion---------->
+        app.get('/boughts', async(req, res) => {
+            const cours = BoughtsCollation.find();
+            const result = await cours.toArray();
+            res.send(result)
+        });
+        app.post('/boughts', async(req, res) => {
+            const data = req.body;
+            const result = await BoughtsCollation.insertOne(data);
+            res.send(result)
+        });
+
+        //payment section-------------->
+        app.post('/create-payment-intent', async(req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            console.log(amount)
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ['card']
+            })
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
+        // payment user cards info detais post sectin-- -- -- -- -- -- -- >
+        app.get("/payments/:email", async(req, res) => {
+            const query = { email: req.params.email }
+            if (req.params.email !== req.decoded.email) {
+                return res.status(403).send({ message: "fordidene access" })
+            }
+            const result = await PaymentCollation.find(query).toArray()
+            res.send(result)
+        });
+        app.post("/payments", async(req, res) => {
+            const payment = req.body;
+            console.log(payment)
+            const paymentResult = await PaymentCollation.insertOne(payment);
+            const query = {
+                _id: {
+                    $in: payment.cartIds.map(id => new ObjectId(id))
+                }
+            }
+            const deleteresult = await BoughtsCollation.deleteMany(query);
+            res.send({ paymentResult, deleteresult })
+        });
+        app.get('/cards', async(req, res) => {
+            const email = req.query.email;
+            console.log(email)
+            const query = { email: email }
+            const result = await BookingCollation.find(query).toArray();
+            res.send(result)
+        });
 
 
 
