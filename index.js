@@ -1,4 +1,4 @@
-const express = require('express')
+const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
@@ -12,7 +12,8 @@ const port = process.env.PORT || 5000;
 //middle were data bancend get koror jonno.
 app.use(cors({
 
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    // origin: ['http://localhost:5173', 'http://localhost:5174'],
+    origin: ['https://b8a12-project.web.app', 'https://b8a12-project.firebaseapp.com'],
     credentials: true
 }));
 app.use(express.json());
@@ -29,7 +30,7 @@ const client = new MongoClient(uri, {
     }
 });
 
-
+//backend side: https://b8-a12-backend.vercel.app
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
@@ -339,8 +340,8 @@ async function run() {
 
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
@@ -350,7 +351,7 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('Hello Hassaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnnnnnnnnnnnnnnnn')
+    res.send('Hello B8A12')
 })
 
 app.listen(port, () => {
