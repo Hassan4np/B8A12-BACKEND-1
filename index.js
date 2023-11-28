@@ -68,7 +68,14 @@ async function run() {
                 res.send({ token })
             })
             //     //middle were----------->
-
+            //section admin verified---------->
+        app.get('/users/admin/:email', async(req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            console.log(email)
+            const user = await UsersCollation.findOne(query);
+            res.send(user.roll || 'user');
+        });
         // const verifyAdmin = async(req, res, next) => {
         //     const email = req.decoded.email;
         //     const query = { email: email };
@@ -197,24 +204,6 @@ async function run() {
             res.send(result)
         });
 
-        // app.patch('/users/admin/:id', verifyToken, verifyAdmin, async(req, res) => {
-        //     const id = req.params.id;
-        //     const filter = { _id: new ObjectId(id) }
-        //     const updatedoc = {
-        //         $set: {
-        //             role: 'admin'
-        //         }
-        //     }
-        //     const result = await UsersCollation.updateOne(filter, updatedoc);
-        //     res.send(result)
-        // });
-        // app.delete('/users/:id', verifyToken, verifyAdmin, async(req, res) => {
-        //     const id = req.params.id;
-        //     const quary = { _id: new ObjectId(id) }
-        //     const result = await UsersCollation.deleteOne(quary);
-        //     res.send(result)
-        // })
-
         //Cards section------------>
 
         app.get('/cards', async(req, res) => {
@@ -264,6 +253,15 @@ async function run() {
         app.get('/boughts', async(req, res) => {
             const cours = BoughtsCollation.find();
             const result = await cours.toArray();
+            res.send(result)
+        });
+        app.get('/boughts/user/:email', async(req, res) => {
+            const email = req.params.email;
+            console.log(email)
+            const query = {
+                email: email
+            }
+            const result = await BoughtsCollation.find(query).toArray();
             res.send(result)
         });
         app.get('/boughts/:email', async(req, res) => {
@@ -336,62 +334,6 @@ async function run() {
             res.send({ paymentResult, deleteresult })
         });
 
-        app.get('/cards', async(req, res) => {
-            const email = req.query.email;
-            console.log(email)
-            const query = { email: email }
-            const result = await BookingCollation.find(query).toArray();
-            res.send(result)
-        });
-
-
-
-        app.post("/bistoboss", async(req, res) => {
-            const data = req.body;
-            console.log(data)
-            const result = await ServicesCollation.insertOne(data);
-            res.send(result)
-        });
-
-
-        app.patch("/bistoboss/:id", async(req, res) => {
-            const id = req.params.id;
-            const data = req.body;
-            const filter = { _id: new ObjectId(id) }
-
-            const updatedock = {
-                $set: {
-                    name: data.name,
-                    category: data.category,
-                    price: data.price,
-                    recipe: data.recipe,
-                    image: data.image,
-                }
-            };
-            const result = await ServicesCollation.updateOne(filter, updatedock);
-            return res.send(result)
-        });
-        app.delete('/bistoboss/:id', async(req, res) => {
-            const id = req.params.id;
-            const quary = { _id: new ObjectId(id) }
-            console.log(id)
-            const result = await ServicesCollation.deleteOne(quary);
-            res.send(result)
-        });
-
-        app.get('/cards', async(req, res) => {
-            const email = req.query.email;
-            const query = { email: email }
-            const result = await CardsCollation.find(query).toArray();
-            res.send(result)
-        })
-
-        app.delete('/cards/:id', async(req, res) => {
-            const id = req.params.id;
-            const quary = { _id: new ObjectId(id) }
-            const result = await BookingCollation.deleteOne(quary);
-            res.send(result)
-        });
 
         //----- PAYMENT METHON FUNCTION------->
 
