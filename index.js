@@ -266,10 +266,32 @@ async function run() {
             const result = await cours.toArray();
             res.send(result)
         });
+        app.get('/boughts/:email', async(req, res) => {
+            const email = req.params.email;
+            console.log(email)
+            const query = {
+                agentemail: email
+            }
+            const result = await BoughtsCollation.find(query).toArray();
+            res.send(result)
+        });
         app.post('/boughts', async(req, res) => {
             const data = req.body;
             const result = await BoughtsCollation.insertOne(data);
             res.send(result)
+        });
+        app.patch("/boughts/:id", async(req, res) => {
+            const id = req.params.id;
+            const data = req.body;
+            console.log(id, data);
+            const filter = { _id: new ObjectId(id) };
+            const updateitem = {
+                $set: {
+                    status: data.status,
+                }
+            };
+            const result = await BoughtsCollation.updateOne(filter, updateitem);
+            return res.send(result)
         });
 
         //payment section-------------->
