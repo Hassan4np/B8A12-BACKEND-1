@@ -46,7 +46,6 @@ async function run() {
 
         //verifytoken------------>
         const verifyToken = (req, res, next) => {
-            console.log("inside thke token of ", req.headers)
             if (!req.headers.authorization) {
                 return res.status(401).send({ message: "forbidden access" })
             }
@@ -57,8 +56,9 @@ async function run() {
                 }
                 req.decoded = decoded;
                 next()
+
             })
-            next()
+
         }
 
         //jwt token---------------->
@@ -69,9 +69,22 @@ async function run() {
                 res.send({ token })
             })
             //     //middle were----------->
-            //section admin verified---------->
-        app.get('/users/admin/:email', async(req, res) => {
+        const verifyAdmin = async(req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await UsersCollation.find(query);
+            const isAdmin = user.roll === "admin";
+            if (isAdmin) {
+                return res.send({ message: "forbidden user" })
+            }
+            next()
+        };
+        //section admin verified---------->
+        app.get('/users/admin/:email', verifyToken, async(req, res) => {
             const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.send({ message: 'unauthoeze access' })
+            }
             const query = { email: email };
             console.log(email)
             const user = await UsersCollation.findOne(query);
@@ -104,11 +117,30 @@ async function run() {
         //advertisemnet section---------------->
 
         app.get('/advertisement', async(req, res) => {
+            const filter = req.query;
+            console.log(filter)
+            const query = {
+                title: {
+                    $regex: filter.search || '',
+                    $options: 'i'
+
+                }
+            }
+            const cours = AdvertisementCollation.find();
+            const result = await cours.toArray();
+            console.log(result)
+            res.send(result)
+        });
+
+        app.get('/advertisement/all', async(req, res) => {
+            // const search = req.query;
+            // console.log(search)
             const cours = AdvertisementCollation.find();
             const result = await cours.toArray();
             res.send(result)
         });
-        app.get('/advertisement/:id', async(req, res) => {
+
+        app.get('/advertisement/:id', verifyToken, async(req, res) => {
             const id = req.params.id;
             const quary = { _id: new ObjectId(id) };
 
@@ -171,11 +203,11 @@ async function run() {
             res.send(result)
         });
         //user section----------------->
-        app.get('/users', async(req, res) => {
+        app.get('/users', verifyToken, verifyAdmin, async(req, res) => {
             const result = await UsersCollation.find().toArray();
             res.send(result)
         });
-        app.patch("/users/:id", async(req, res) => {
+        app.patch("/users/:id", verifyToken, verifyAdmin, async(req, res) => {
             const id = req.params.id;
             const data = req.body;
             console.log(id, data);
@@ -188,7 +220,7 @@ async function run() {
             const result = await UsersCollation.updateOne(filter, updateitem);
             return res.send(result)
         });
-        app.post('/users', async(req, res) => {
+        app.post('/users', verifyToken, verifyAdmin, async(req, res) => {
             const data = req.body;
             const query = { email: data.email }
             const constexistinguser = await UsersCollation.findOne(query);
@@ -198,7 +230,7 @@ async function run() {
             const result = await UsersCollation.insertOne(data);
             res.send(result)
         });
-        app.delete('/users/:id', async(req, res) => {
+        app.delete('/users/:id', verifyToken, verifyAdmin, async(req, res) => {
             const id = req.params.id;
             const quary = { _id: new ObjectId(id) }
             const result = await UsersCollation.deleteOne(quary);
@@ -213,18 +245,18 @@ async function run() {
             const result = await CardsCollation.find(query).toArray();
             res.send(result)
         });
-        app.post('/cards', async(req, res) => {
+        app.post('/cards', verifyToken, async(req, res) => {
             const data = req.body;
             const result = await CardsCollation.insertOne(data);
             res.send(result)
         });
-        app.get('/cards/:id', async(req, res) => {
+        app.get('/cards/:id', verifyToken, async(req, res) => {
             const id = req.params.id;
             const quary = { _id: new ObjectId(id) };
             const result = await CardsCollation.findOne(quary);
             res.send(result)
         });
-        app.delete('/cards/:id', async(req, res) => {
+        app.delete('/cards/:id', verifyToken, async(req, res) => {
             const id = req.params.id;
             const quary = { _id: new ObjectId(id) }
             const result = await CardsCollation.deleteOne(quary);
@@ -316,13 +348,13 @@ async function run() {
         //     const result = await PaymentCollation.find(query).toArray()
         //     res.send(result)
         // });
-        app.get("/payments/:email", async(req, res) => {
+        app.get("/payments/:email", verifyToken, async(req, res) => {
             const query = { agentemail: req.params.email }
 
             const result = await PaymentCollation.find(query).toArray()
             res.send(result)
         });
-        app.post("/payments", async(req, res) => {
+        app.post("/payments", verifyToken, async(req, res) => {
             const payment = req.body;
             console.log(payment)
             const paymentResult = await PaymentCollation.insertOne(payment);
