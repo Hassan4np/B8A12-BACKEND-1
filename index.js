@@ -317,7 +317,7 @@ async function run() {
         //     res.send(result)
         // });
         app.get("/payments/:email", async(req, res) => {
-            const query = { email: req.params.email }
+            const query = { agentemail: req.params.email }
 
             const result = await PaymentCollation.find(query).toArray()
             res.send(result)
