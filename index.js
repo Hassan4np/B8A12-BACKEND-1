@@ -94,12 +94,18 @@ async function run() {
         //advertisemnet section---------------->
 
         app.get('/advertisement', async(req, res) => {
-            const filter = (req.query).search;
+            const filter = (req.query)
+            const search = filter.search
             console.log(filter);
             const query = {
-                title: { $regex: filter, $options: 'i' }
+                title: { $regex: search, $options: 'i' }
             };
-            const cours = AdvertisementCollation.find(query);
+            const options = {
+                sort: {
+                    price: filter.sort === "asc" ? 1 : -1
+                }
+            }
+            const cours = AdvertisementCollation.find(query, options);
             const result = await cours.toArray();
             res.send(result)
         });
