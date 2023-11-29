@@ -86,55 +86,26 @@ async function run() {
                 return res.send({ message: 'unauthoeze access' })
             }
             const query = { email: email };
-            console.log(email)
+
             const user = await UsersCollation.findOne(query);
             res.send(user.roll || 'user');
         });
-        // const verifyAdmin = async(req, res, next) => {
-        //     const email = req.decoded.email;
-        //     const query = { email: email };
-        //     const user = await UsersCollation.find(query);
-        //     const isAdmin = user.role === "admin";
-        //     if (!isAdmin) {
-        //         return res.send({ message: "forbidden user" })
-        //     }
-        //     next()
-        // }
-        // app.get('/users/admin/:email', verifyToken, async(req, res) => {
-        //     const email = req.params.email
-        //     if (email !== req.decoded.email) {
-        //         return res.send({ message: 'unauthoeze access' })
-        //     }
-        //     const query = { email: email }
-        //     const user = await UsersCollation.findOne(query);
-        //     let admin = false
-        //     if (user) {
-        //         admin = user.role === 'admin'
-        //     }
-        //     res.send({ admin })
-        // });
 
         //advertisemnet section---------------->
 
         app.get('/advertisement', async(req, res) => {
-            const filter = req.query;
-            console.log(filter)
+            const filter = (req.query).search;
+            console.log(filter);
             const query = {
-                title: {
-                    $regex: filter.search || '',
-                    $options: 'i'
-
-                }
-            }
-            const cours = AdvertisementCollation.find();
+                title: { $regex: filter, $options: 'i' }
+            };
+            const cours = AdvertisementCollation.find(query);
             const result = await cours.toArray();
-            console.log(result)
             res.send(result)
         });
 
         app.get('/advertisement/all', async(req, res) => {
-            // const search = req.query;
-            // console.log(search)
+
             const cours = AdvertisementCollation.find();
             const result = await cours.toArray();
             res.send(result)
@@ -149,7 +120,7 @@ async function run() {
         });
         app.get('/advertisement/agent/:email', async(req, res) => {
             const email = req.params.email;
-            console.log(email)
+
             const query = {
                 agent_email: email
             };
@@ -164,7 +135,7 @@ async function run() {
         app.patch("/advertisement/:id", async(req, res) => {
             const id = req.params.id;
             const data = req.body;
-            console.log(id, data)
+
             const filter = { _id: new ObjectId(id) }
 
             const updateitem = {
@@ -185,7 +156,7 @@ async function run() {
         app.patch("/advertisement/status/:id", async(req, res) => {
             const id = req.params.id;
             const data = req.body;
-            console.log(id, data);
+
             const filter = { _id: new ObjectId(id) };
             const updateitem = {
                 $set: {
@@ -210,7 +181,7 @@ async function run() {
         app.patch("/users/:id", verifyToken, verifyAdmin, async(req, res) => {
             const id = req.params.id;
             const data = req.body;
-            console.log(id, data);
+
             const filter = { _id: new ObjectId(id) };
             const updateitem = {
                 $set: {
@@ -277,7 +248,7 @@ async function run() {
         });
         app.delete('/review/:id', async(req, res) => {
                 const id = req.params.id;
-                console.log(id)
+
                 const quary = { _id: new ObjectId(id) }
                 const result = await ReviewCollation.deleteOne(quary);
                 res.send(result)
@@ -290,7 +261,7 @@ async function run() {
         });
         app.get('/boughts/user/:email', async(req, res) => {
             const email = req.params.email;
-            console.log(email)
+
             const query = {
                 email: email
             }
@@ -299,7 +270,7 @@ async function run() {
         });
         app.get('/boughts/:email', async(req, res) => {
             const email = req.params.email;
-            console.log(email)
+
             const query = {
                 agentemail: email
             }
@@ -314,7 +285,7 @@ async function run() {
         app.patch("/boughts/:id", async(req, res) => {
             const id = req.params.id;
             const data = req.body;
-            console.log(id, data);
+
             const filter = { _id: new ObjectId(id) };
             const updateitem = {
                 $set: {
@@ -369,6 +340,35 @@ async function run() {
 
 
         //----- PAYMENT METHON FUNCTION------->
+
+        app.get("/order-stats", async(req, res) => {
+            const result = await PaymentCollation.aggregate([{
+                    $addFields: {
+                        menuItemsObjectIds: {
+                            $map: {
+                                input: "$adsid",
+                                as: "itemId",
+                                in: { $toObjectId: "$$itemId" },
+                            },
+                        },
+                    },
+                },
+                {
+                    $lookup: {
+                        from: "advertisement",
+                        localField: "menuItemsObjectIds",
+                        foreignField: "_id",
+                        as: "menuItemsData",
+                    },
+                },
+                {
+                    $unwind: "$menuItemsData",
+                },
+
+
+            ]).toArray();
+            res.send(result)
+        });
 
 
         // Send a ping to confirm a successful connection
