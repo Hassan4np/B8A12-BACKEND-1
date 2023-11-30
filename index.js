@@ -79,6 +79,16 @@ async function run() {
             }
             next()
         };
+        const verifyAgent = async(req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await UsersCollation.find(query);
+            const isAdmin = user.roll === "agent";
+            if (isAdmin) {
+                return res.send({ message: "forbidden user" })
+            }
+            next()
+        };
         //section admin verified---------->
         app.get('/users/admin/:email', verifyToken, async(req, res) => {
             const email = req.params.email;
@@ -133,12 +143,12 @@ async function run() {
             const result = await AdvertisementCollation.find(query).toArray();
             res.send(result)
         });
-        app.post('/advertisement', async(req, res) => {
+        app.post('/advertisement', verifyToken, verifyAgent, async(req, res) => {
             const data = req.body;
             const result = await AdvertisementCollation.insertOne(data);
             res.send(result)
         });
-        app.patch("/advertisement/:id", async(req, res) => {
+        app.patch("/advertisement/:id", verifyToken, verifyAgent, async(req, res) => {
             const id = req.params.id;
             const data = req.body;
 
@@ -159,7 +169,7 @@ async function run() {
             const result = await AdvertisementCollation.updateOne(filter, updateitem);
             return res.send(result)
         });
-        app.patch("/advertisement/status/:id", async(req, res) => {
+        app.patch("/advertisement/status/:id", verifyToken, async(req, res) => {
             const id = req.params.id;
             const data = req.body;
 
@@ -173,7 +183,7 @@ async function run() {
             return res.send(result)
         });
 
-        app.delete('/advertisement/:id', async(req, res) => {
+        app.delete('/advertisement/:id', verifyToken, verifyAgent, async(req, res) => {
             const id = req.params.id;
             const quary = { _id: new ObjectId(id) }
             const result = await AdvertisementCollation.deleteOne(quary);
@@ -197,7 +207,7 @@ async function run() {
             const result = await UsersCollation.updateOne(filter, updateitem);
             return res.send(result)
         });
-        app.post('/users', verifyToken, verifyAdmin, async(req, res) => {
+        app.post('/users', async(req, res) => {
             const data = req.body;
             const query = { email: data.email }
             const constexistinguser = await UsersCollation.findOne(query);
@@ -252,7 +262,7 @@ async function run() {
             const result = await ReviewCollation.insertOne(data);
             res.send(result)
         });
-        app.delete('/review/:id', async(req, res) => {
+        app.delete('/review/:id', verifyToken, async(req, res) => {
                 const id = req.params.id;
 
                 const quary = { _id: new ObjectId(id) }
@@ -260,12 +270,12 @@ async function run() {
                 res.send(result)
             })
             //brought secion---------->
-        app.get('/boughts', async(req, res) => {
+        app.get('/boughts', verifyToken, async(req, res) => {
             const cours = BoughtsCollation.find();
             const result = await cours.toArray();
             res.send(result)
         });
-        app.get('/boughts/user/:email', async(req, res) => {
+        app.get('/boughts/user/:email', verifyToken, async(req, res) => {
             const email = req.params.email;
 
             const query = {
@@ -274,7 +284,7 @@ async function run() {
             const result = await BoughtsCollation.find(query).toArray();
             res.send(result)
         });
-        app.get('/boughts/:email', async(req, res) => {
+        app.get('/boughts/:email', verifyToken, async(req, res) => {
             const email = req.params.email;
 
             const query = {
@@ -283,12 +293,12 @@ async function run() {
             const result = await BoughtsCollation.find(query).toArray();
             res.send(result)
         });
-        app.post('/boughts', async(req, res) => {
+        app.post('/boughts', verifyToken, async(req, res) => {
             const data = req.body;
             const result = await BoughtsCollation.insertOne(data);
             res.send(result)
         });
-        app.patch("/boughts/:id", async(req, res) => {
+        app.patch("/boughts/:id", verifyToken, async(req, res) => {
             const id = req.params.id;
             const data = req.body;
 
@@ -316,15 +326,7 @@ async function run() {
                 clientSecret: paymentIntent.client_secret,
             });
         });
-        // payment user cards info detais post sectin-- -- -- -- -- -- -- >
-        // app.get("/payments/:email", async(req, res) => {
-        //     const query = { email: req.params.email }
-        //     if (req.params.email !== req.decoded.email) {
-        //         return res.status(403).send({ message: "fordidene access" })
-        //     }
-        //     const result = await PaymentCollation.find(query).toArray()
-        //     res.send(result)
-        // });
+
         app.get("/payments/:email", verifyToken, async(req, res) => {
             const query = { agentemail: req.params.email }
 
@@ -344,9 +346,7 @@ async function run() {
             res.send({ paymentResult, deleteresult })
         });
 
-
         //----- PAYMENT METHON FUNCTION------->
-
         app.get("/order-stats", async(req, res) => {
             const result = await PaymentCollation.aggregate([{
                     $addFields: {
