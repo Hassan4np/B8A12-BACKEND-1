@@ -12,8 +12,8 @@ const port = process.env.PORT || 5000;
 //middle were data bancend get koror jonno.
 app.use(cors({
 
-    // origin: ['http://localhost:5173', 'http://localhost:5174'],
-    origin: ['https://b8a12-project.web.app', 'https://b8a12-project.firebaseapp.com'],
+    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    // origin: ['https://b8a12-project.web.app', 'https://b8a12-project.firebaseapp.com'],
     credentials: true
 }));
 app.use(express.json());
@@ -59,7 +59,7 @@ async function run() {
 
             })
 
-        }
+        };
 
         //jwt token---------------->
         app.post('/jwt', async(req, res) => {
@@ -207,6 +207,33 @@ async function run() {
             const result = await UsersCollation.updateOne(filter, updateitem);
             return res.send(result)
         });
+
+        //-----------------------------
+
+        
+
+        //----------------------------------------
+        app.patch("/users/fraud/:id", async(req, res) => {
+            const id = req.params.id;
+            const data = req.body;
+            // console.log(id, data)
+            const query = { email: data.email }
+                // const filter = { _id: new ObjectId(id) };
+                // console.log(query, id)
+                // const updateitem = {
+                //     $set: {
+                //         roll: data.roll,
+                //     }
+                // };
+                // const result = await UsersCollation.updateOne(filter, updateitem);
+
+            const result = await AdvertisementCollation.find(query);
+            console.log(result)
+                // return res.send(result)
+        });
+
+
+
         app.post('/users', async(req, res) => {
             const data = req.body;
             const query = { email: data.email }
@@ -370,10 +397,25 @@ async function run() {
                 {
                     $unwind: "$menuItemsData",
                 },
+                {
+                    $group: {
+                        // _id: "$menuItemsData.title",
+                        _id: "$menuItemsData.location_name",
+                        _id: "$menuItemsData.title",
 
 
+
+                    },
+                }
             ]).toArray();
             res.send(result)
+        });
+        app.get("/payments", async(req, res) => {
+
+            Result = await PaymentCollation.aggregate().toArray();
+
+            res.send(Result)
+
         });
 
 
